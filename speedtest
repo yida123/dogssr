@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# 一键测速脚本
+
+# 检查是否安装了speedtest-cli
+if ! command -v speedtest-cli &> /dev/null
+then
+    echo "speedtest-cli 未安装。正在安装..."
+    sudo apt update && sudo apt install python3-pip -y
+    sudo pip3 install speedtest-cli
+fi
+
+# 获取当前时间戳
+timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+
+# 定义结果文件
+output_file="speedtest_result.txt"
+
+# 运行Speedtest
+echo "[$timestamp] 正在进行网络测速..."
+result=$(speedtest-cli --share)
+
+# 输出测试结果
+echo "$result"
+
+# 保存结果到文件
+echo -e "[$timestamp]\n$result\n" >> $output_file
+echo "测试结果已保存到 $output_file"
+
+# 提示用户查看结果
+echo "你可以在 $output_file 中查看历史测速记录。"
+
+# 如果有传入参数，打开测试结果页面
+if [ "$1" == "--view" ]; then
+    url=$(echo "$result" | grep -oP 'https://www.speedtest.net/result/\S+')
+    if [ -n "$url" ]; then
+        echo "打开测速结果页面：$url"
+        xdg-open "$url"
+    else
+        echo "未找到测速结果链接。"
+    fi
+fi
